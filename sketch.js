@@ -1,45 +1,70 @@
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext("2d");
 
-var windowWidth = canvas.width;
-var windowHeight = canvas.height;
+
+// Window Constants
+const windowWidth = canvas.width;
+const windowHeight = canvas.height;
+
+// Ray Tracing Constants
+const raysPerPixel = 1;
+const bounceLimit = 3;
 
 // Pixels to be colored
-let pixels = Array(windowHeight).fill(0).map(()=>Array(windowWidth).fill(0).map(()=>{return [0,0,0]}));
+var pixels = Array(windowHeight).fill(0).map(()=>Array(windowWidth).fill(0).map(()=>{return [0,0,0]}));
 
 var camera = new Camera(0,0,0, [windowHeight, windowWidth]);
-pixels = camera.rays;
 
 var objects = new Objects().objects;
 
 
 var beforeRender = Date.now();
 
-paint(pixels);
+trace(pixels);
 
 console.log("Frametime: ", Date.now() - beforeRender);
 
 
 
-function paint(pixels) {
+function trace() {
 	for (let i = 0; i < windowHeight; i++) {
 		for (let j = 0; j < windowWidth; j++) {
 
-			let color = [0, 0, 0];
-			//let color = pixels[i][j];
 			//console.log(i, j);
+			let averageLight = [0, 0, 0];
 
-			let intersection = camera.find_intersection(camera.rays[i][j], objects);
-			
+			// For each ray of the pixel
+			for (let r = 0; r < raysPerPixel; r++) {
+				let rayColor = 1;
+				let incomingLight = [0, 0, 0];
+				let intersection;
+				// For each bounce of the ray
+				let rayOrigin = [camera.x, camera.y, camera.z];
+				let rayDir = camera.rays[i][j];
 
-			if (intersection[0] < Infinity) {
-				//console.log(intersection);
-				color = intersection[1].color;
+				for (let b = 0; b < bounceLimit; b++) {
+					intersection = camera.find_intersection(rayDir, rayOrigin, objects);
+					//console.log(intersection);
+					
+					if (intersection["didHit"]) {
+						rayOrigin = intersection["hitPoint"];
+
+						// Diffuse Light
+						rayDir = cosineHemisphereSample(rayDir, intersection["surfaceNormal"]);
+						let emittedLight = scaleMatrix(intersection["hitObject"].emissionColor, intersection["hitObject"].emissionStrength);
+						incomingLight = addMatrix(incomingLight, scaleMatrix(emittedLight, rayColor));
+						rayColor = scaleMatrix(rayColor, intersection["hitObject"].color);
+						//console.log(emittedLight, incomingLight, rayColor);
+					}
+					else {
+						break;
+					}
+				}
+				averageLight = addMatrix(averageLight, incomingLight);
 			}
+			averageLight = scaleMatrix(averageLight, 1/raysPerPixel);
 
-			if ([camera.intersect])
-
-			ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+			ctx.fillStyle = `rgb(${255*averageLight[0]}, ${255*averageLight[1]}, ${255*averageLight[2]})`;
 			ctx.fillRect(i, j, 1, 1);
 		}
 	}

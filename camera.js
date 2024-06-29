@@ -20,7 +20,7 @@ class Camera {
 		this.calculateRayDirections();
 	}
 
-	//TODO: Implement camera movements
+	//TODO: Do this in GPU once I implement movement?
 	calculateRayDirections() {
 		for (let i = 0; i < this.screenRes[0]; i++) {
 			let RowCoordinate = this.screenScale * ((i - this.screenRes[0]/2)/this.screenRes[0]);
@@ -47,37 +47,45 @@ class Camera {
 	}
 
 	// Find the intersection for the closest object for a single ray
-	find_intersection(ray, objects) {
+	find_intersection(ray, rayOrigin, objects) {
+		let didHit = false;
 		let closest_t = Infinity;
 		let closest_object = null;
+		let hitPoint = null;
+		let surfaceNormal = null;
 
 		for (let i = 0; i < objects.length; i++) {
-			let t = this.ray_intersect(ray, objects[i], this.focalLength, closest_t);
+			let t = this.ray_intersect(ray, rayOrigin, objects[i], this.focalLength, closest_t);
 			
 			if (t != false) {
 				if (t < closest_t) {
+					didHit = true;
 					closest_t = t;
 					closest_object = objects[i];
+					hitPoint = addMatrix(rayOrigin, scaleMatrix(ray, t));
+					surfaceNormal = subtMatrix(hitPoint, [closest_object.x, closest_object.y, closest_object.z]);
+					surfaceNormal = scaleMatrix(surfaceNormal, 1/mag(surfaceNormal));
 				}
 			}
 		}
-		//console.log(closest_t, closest_object);
-		return [closest_t, closest_object];
+		return {"didHit": didHit, "hitObject": closest_object, "hitPoint": hitPoint, "surfaceNormal": surfaceNormal};
 	}
 
 	// Find the intersection between an object and a ray
-	ray_intersect(ray, object, min_t, max_t) {
-		let centralVector = [object.x - this.x, object.y - this.y, object.z - this.z];
-		let centralDistSquared = centralVector[0]**2 + centralVector[1]**2 + centralVector[2]**2;
+	ray_intersect(rayDir, rayOrigin, object, min_t, max_t) {
+		let centralVector = subtMatrix([object.x, object.y, object.z], rayOrigin);
+		let centralDist = mag(centralVector);
 
-		//console.log(ray);
-		let tc = dotProduct(ray, centralVector);
+		//console.log(ray, rayOrigin, centralVector);
+		let tc = dotProduct(rayDir, centralVector);
+		//console.log(centralDist);
+
 
 		// Ray does not intersect sphere if tc < 0 (away from camera)
 		if (tc < 0) return false;
 
-		let d = Math.sqrt(centralDistSquared - tc**2);
-		//console.log(centralDistSquared, tc**2);
+		let d = Math.sqrt(centralDist ** 2 - tc**2);
+		//console.log(d, centralDist, tc);
 
 		// Ray does not intersect if d > radius (ray missed sphere) (ONLY FOR SPHERES)
 		if (d > object.radius) return false;

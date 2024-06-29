@@ -2,18 +2,22 @@ class Objects {
 	constructor() {
 		this.objects = [
 			{"shape":"sphere", 
-			"x":0, 
-			"y":0, 
+			"x":-6, 
+			"y":6, 
 			"z":50, 
 			"radius":10,
-			"color": [255,0,0]},
+			"color": [1,0,0],
+			"emissionColor": [0,0,0],
+			"emissionStrength":0},
 
 			{"shape":"sphere", 
-				"x":-6, 
-				"y":-6, 
-				"z":50, 
-				"radius":6,
-				"color": [0,0,255]}
+				"x":-10, 
+				"y":10, 
+				"z":40, 
+				"radius":4,
+				"color": [1,1,1],
+				"emissionColor": [1,1,1],
+				"emissionStrength":1}
 		];
 	}
 }
