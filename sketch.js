@@ -12,8 +12,12 @@ pixels = camera.rays;
 
 var objects = new Objects().objects;
 
+
+var beforeRender = Date.now();
+
 paint(pixels);
 
+console.log("Frametime: ", Date.now() - beforeRender);
 
 
 
@@ -30,7 +34,7 @@ function paint(pixels) {
 
 			if (intersection[0] < Infinity) {
 				//console.log(intersection);
-				color = [255, 255, 255];
+				color = intersection[1].color;
 			}
 
 			if ([camera.intersect])
