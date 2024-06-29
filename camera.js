@@ -25,8 +25,9 @@ class Camera {
 			for (let j = 0; j < this.screenRes[1]; j++) {
 				let ColumnCoordinate = this.screenScale * ((j - this.screenRes[1]/2)/this.screenRes[1]);
 
-				let Dx = ColumnCoordinate - this.x;
-				let Dy = RowCoordinate - this.y;
+				// Relative to camera origin
+				let Dx = RowCoordinate;
+				let Dy = - ColumnCoordinate;
 				let Dz = this.focalLength;
 
 				let dist = Math.sqrt(Dx**2 + Dy**2 + Dz**2);
@@ -64,14 +65,15 @@ class Camera {
 		let centralVector = [object.x - this.x, object.y - this.y, object.z - this.z];
 		let centralDistSquared = centralVector[0]**2 + centralVector[1]**2 + centralVector[2]**2;
 
-		//console.log(ray);
+		console.log(ray);
 		// Dot product
-		let tc = ray[0]*centralVector[0] + ray[1]*centralVector[1] + ray[2]*centralVector[2];
+		let tc = dotProduct(ray, centralVector);
 
 		// Ray does not intersect sphere if tc < 0 (away from camera)
 		if (tc < 0) return false;
 
 		let d = Math.sqrt(centralDistSquared - tc**2);
+		//console.log(centralDistSquared, tc**2);
 
 		// Ray does not intersect if d > radius (ray missed sphere) (ONLY FOR SPHERES)
 		if (d > object.radius) return false;
