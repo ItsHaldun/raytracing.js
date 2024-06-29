@@ -8,12 +8,11 @@ var windowHeight = canvas.height;
 let pixels = Array(windowHeight).fill(0).map(()=>Array(windowWidth).fill(0).map(()=>{return [0,0,0]}));
 
 var camera = new Camera(0,0,0, [windowHeight, windowWidth]);
-
 pixels = camera.rays;
 
+var objects = new Objects().objects;
+
 paint(pixels);
-
-
 
 
 
@@ -21,11 +20,23 @@ paint(pixels);
 function paint(pixels) {
 	for (let i = 0; i < windowHeight; i++) {
 		for (let j = 0; j < windowWidth; j++) {
-			let color = pixels[i][j];
 
-			ctx.fillStyle = `rgb(${255*color[0]/2 + 255/2}, ${255*color[1]/2 + 255/2}, ${255*color[2]/2 + 255/2})`;
+			let color = [0, 0, 0];
+			//let color = pixels[i][j];
+			//console.log(i, j);
+
+			let intersection = camera.find_intersection(camera.rays[i][j], objects);
+			
+
+			if (intersection[0] < Infinity) {
+				//console.log(intersection);
+				color = [255, 255, 255];
+			}
+
+			if ([camera.intersect])
+
+			ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
 			ctx.fillRect(i, j, 1, 1);
 		}
 	}
 }
-
