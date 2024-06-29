@@ -1,13 +1,16 @@
 class Camera {
 	constructor(x, y, z, screenRes, screenScale=1, focalLength=1, pitch=0, yaw=0, roll=0) {
+		// Coordinates
 		this.x = x;
 		this.y = y;
 		this.z = z;
 
+		// Angles
 		this.pitch = pitch;
 		this.yaw = yaw;
 		this.roll = roll;
 		
+		// Camera Properties
 		this.screenRes = screenRes;
 		this.focalLength = focalLength;
 		this.screenScale = screenScale;
@@ -30,11 +33,13 @@ class Camera {
 				let Dy = - ColumnCoordinate;
 				let Dz = this.focalLength;
 
-				let dist = Math.sqrt(Dx**2 + Dy**2 + Dz**2);
+				let tranforms = rotateMatrix([Dx, Dy, Dz], this.pitch, this.yaw, this.roll);
+
+				let dist = Math.sqrt(tranforms[0]**2 + tranforms[1]**2 + tranforms[2]**2);
 				
-				Dx = Dx / dist;
-				Dy = Dy / dist;
-				Dz = Dz /dist;
+				Dx = tranforms[0] / dist;
+				Dy = tranforms[1] / dist;
+				Dz = tranforms[2] /dist;
 
 				this.rays[i][j] = [Dx, Dy, Dz];
 			}
@@ -65,8 +70,7 @@ class Camera {
 		let centralVector = [object.x - this.x, object.y - this.y, object.z - this.z];
 		let centralDistSquared = centralVector[0]**2 + centralVector[1]**2 + centralVector[2]**2;
 
-		console.log(ray);
-		// Dot product
+		//console.log(ray);
 		let tc = dotProduct(ray, centralVector);
 
 		// Ray does not intersect sphere if tc < 0 (away from camera)

@@ -27,7 +27,7 @@ function paint(pixels) {
 
 			let color = [0, 0, 0];
 			//let color = pixels[i][j];
-			console.log(i, j);
+			//console.log(i, j);
 
 			let intersection = camera.find_intersection(camera.rays[i][j], objects);
 			
