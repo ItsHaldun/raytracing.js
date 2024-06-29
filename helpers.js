@@ -21,6 +21,11 @@ function mag(vector) {
 	return Math.sqrt(sum);
 }
 
+// Normalize a vector
+function normalizeVector(vector) {
+	return scaleMatrix(vector, 1/mag(vector));
+}
+
 // Subtract Vectors
 function subtMatrix(vector1, vector2) {
 	if (vector1.length != vector2.length) {
@@ -68,8 +73,9 @@ function multMatrix(vector1, vector2) {
 
 // Scale Martix by a constant
 function scaleMatrix(vector1, constant) {
+	let result = Array(vector1.length).fill(0);
 	for(let i=0; i<vector1.length; i++) {
-		vector1[i] *= constant;
+		result[i] = constant * vector1[0];
 	}
 	return vector1;
 }
@@ -99,9 +105,14 @@ function rotateMatrix(matrix, pitch, yaw, roll) {
 
 // Cosine Hemisphere Sampling
 // https://www.rorydriscoll.com/2009/01/07/better-sampling/
-function cosineHemisphereSample (rayDir, surfaceNormal) {
-	let u1 = Math.random();
-	let u2 = Math.random();
+function cosineHemisphereSample (rayDir, surfaceNormal, i, j) {
+	const seed = () => ((Math.random())*2**32)>>>0;
+	let generator = sfc32(seed(), seed(), seed(), seed());
+
+	let u1 = generator();
+	let u2 = generator();
+
+	//console.log(u1, u2);
 
 	let r = Math.sqrt(u1);
 	let theta = 2 * Math.PI * u2;
@@ -117,7 +128,24 @@ function cosineHemisphereSample (rayDir, surfaceNormal) {
 	}
 
 	let bounceDir = [x, y, z];
-	bounceDir = scaleMatrix(bounceDir, 1/mag(bounceDir));
+	bounceDir = normalizeVector(bounceDir);
 
 	return bounceDir;
+}
+
+
+// Uniform random from seed
+// https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
+function sfc32(a, b, c, d) {
+	
+  return function() {
+    a |= 0; b |= 0; c |= 0; d |= 0;
+    let t = (a + b | 0) + d | 0;
+    d = d + 1 | 0;
+    a = b ^ b >>> 9;
+    b = c + (c << 3) | 0;
+    c = (c << 21 | c >>> 11);
+    c = c + t | 0;
+    return (t >>> 0) / 4294967296;
+  }
 }

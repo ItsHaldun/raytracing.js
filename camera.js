@@ -39,7 +39,7 @@ class Camera {
 				
 				Dx = tranforms[0] / dist;
 				Dy = tranforms[1] / dist;
-				Dz = tranforms[2] /dist;
+				Dz = tranforms[2] / dist;
 
 				this.rays[i][j] = [Dx, Dy, Dz];
 			}

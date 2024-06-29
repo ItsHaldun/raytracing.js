@@ -7,7 +7,7 @@ const windowWidth = canvas.width;
 const windowHeight = canvas.height;
 
 // Ray Tracing Constants
-const raysPerPixel = 1;
+const raysPerPixel = 10;
 const bounceLimit = 3;
 
 // Pixels to be colored
@@ -35,13 +35,14 @@ function trace() {
 
 			// For each ray of the pixel
 			for (let r = 0; r < raysPerPixel; r++) {
-				let rayColor = 1;
+				let rayColor = [1, 1, 1];
 				let incomingLight = [0, 0, 0];
-				let intersection;
-				// For each bounce of the ray
+				let intersection = null;
+				
 				let rayOrigin = [camera.x, camera.y, camera.z];
 				let rayDir = camera.rays[i][j];
-
+				//console.log(rayDir, i, j, r);
+				// For each bounce of the ray
 				for (let b = 0; b < bounceLimit; b++) {
 					intersection = camera.find_intersection(rayDir, rayOrigin, objects);
 					//console.log(intersection);
@@ -49,11 +50,17 @@ function trace() {
 					if (intersection["didHit"]) {
 						rayOrigin = intersection["hitPoint"];
 
-						// Diffuse Light
-						rayDir = cosineHemisphereSample(rayDir, intersection["surfaceNormal"]);
+						// Diffuse Reflection
+						rayDir = cosineHemisphereSample(rayDir, intersection["surfaceNormal"], i, j);
+
+						// Specular Reflection
+						//let a = 2 * dotProduct(rayDir, intersection["surfaceNormal"]);
+						//let b = scaleMatrix(intersection["surfaceNormal"], a);
+						//rayDir = subtMatrix(rayDir, b);
+
 						let emittedLight = scaleMatrix(intersection["hitObject"].emissionColor, intersection["hitObject"].emissionStrength);
-						incomingLight = addMatrix(incomingLight, scaleMatrix(emittedLight, rayColor));
-						rayColor = scaleMatrix(rayColor, intersection["hitObject"].color);
+						incomingLight = addMatrix(incomingLight, multMatrix(emittedLight, rayColor));
+						rayColor = multMatrix(rayColor, intersection["hitObject"].color);
 						//console.log(emittedLight, incomingLight, rayColor);
 					}
 					else {
@@ -63,6 +70,15 @@ function trace() {
 				averageLight = addMatrix(averageLight, incomingLight);
 			}
 			averageLight = scaleMatrix(averageLight, 1/raysPerPixel);
+
+			averageLight.forEach(element => {
+				if (element > 1) {
+					element = 1;
+				}
+				if (element < 0) {
+					element = 0;
+				}
+			});
 
 			ctx.fillStyle = `rgb(${255*averageLight[0]}, ${255*averageLight[1]}, ${255*averageLight[2]})`;
 			ctx.fillRect(i, j, 1, 1);
